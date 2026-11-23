@@ -1,11 +1,12 @@
-# Noite de Match
+# Night Script! 
+entendeu o trocadilho?
 
 Um jogo de encontro no estilo *visual novel*, feito com HTML, CSS e JavaScript puro, sem bibliotecas. O jogador precisa responder corretamente às pistas da kwaii kitty para conquistá-la, e o final depende do desempenho na noite.
 
 
 ## História
 
-numa noite noite frra, otima hora para ler um livro. Você está no sofá, deslizando no Tinder, quando aparece a pessoa mais linda que você já viu: a kwaii kitty, engenheira sênior de infraestrutura numa big tech. Você tem só seis meses de curso de Análise e Desenvolvimento de Sistemas / Programação. Deu match, e agora vocês vão jantar.
+numa noite noite fria, uma boa hora para ler um livro... Você está no sofá, deslizando no Tinder, quando aparece a pessoa mais linda que você já viu: a kwaii kitty, engenheira sênior de infraestrutura numa big tech. Você tem só seis meses de curso de Análise e Desenvolvimento de Sistemas / Programação. Deu match, e agora vocês vão jantar.
 
 Para impressioná-la, você vai precisar mostrar que sabe de arquitetura de computadores. Ela não gosta de mentirosos.
 
