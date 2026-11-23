@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Night Script</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Maru+Gothic:wght@400;700&display=swap">
+<link rel="stylesheet" href="./game_design.css">
+
+</head>
+<body>
+<div id="stage"><span id="ph"></span></div>
+<img id="sprite" alt="">
+<img id="cg" alt="">
+<div id="hud" hidden>
+  <div id="love"><div class="lab"><span id="girlname"></span><span id="lovepct"></span></div>
+    <div id="bar"><div id="fill"></div><span id="delta"></span></div></div>
+  <button id="prof" type="button"></button>
+  <span id="prog"></span>
+  <button id="mute" type="button">Sound: on</button>
+</div>
+<div id="box" hidden>
+  <div id="phone"></div>
+  <div id="dlg"><div id="who"></div><p id="txt"></p><div id="opts"></div><span id="next">clique para continuar</span>
+    <button class="btn" id="end">Jogar de novo</button></div>
+</div>
+<div id="title">
+  <h1>Night Script</h1>
+  <p>Seis meses de curso de programação e um match mudaram a sua noite. Acerte, impressione e não minta.</p>
+  <input type="text" placeholder="qual o seu nome?" id="ipt_nome">
+  <button class="btn" id="start">Iniciar o encontro</button>
+</div>
+
+<script>
+
+
+const SND_DIR = "assets/sound/";
+const SFX = {                      // efeitos curtos
+  right:"right.mp3", wrong:"wrong.mp3", click:"click.mp3",
+  call:"call.mp3", win:"win.mp3", lose:"lose.mp3", lose2:"lose2.mp3"
+};
+const MUSIC = {                    // a chave é o nome do fundo (BG)
+  couch:"couch.mp3", restaurant:"restaurant.mp3", arcade:"arcade.mp3",
+  park:"park.mp3", rooftop:"rooftop.mp3", beach:"beach.mp3",
+  house:"house.mp3", bus:"bus.mp3", street:"street.mp3" , title:"title.mp3"
+};
+const VOL = {sfx:.7, music:.4};
+
+
+/* ================================================================
+   EDIT HERE: everything you want to change lives in this block.
+   ================================================================ */
+const CFG = {
+  girl: "Kwaii Kitty", prof: "Prof. Matheus", you: "você" ,
+  startLove: 50, gain: 10, loss: 15,     // love bar: points per right / wrong answer
+  comboNeeded: 3,                        // right answers in a row to unlock the professor
+  profMaxUses: 3,                        // how many times he picks up in the whole game
+  placesToVisit: 3                       // extra places after dinner
+};
+
+
+document.getElementById("start").addEventListener("click", function() {
+  let nome = document.getElementById("ipt_nome").value.trim();
+
+  if (nome !== "") {
+    CFG.you = nome;
+  }
+});
+
+// Backgrounds: set img:"images/restaurant.jpg" to use a real picture.
+// While img is empty, the css gradient is shown with a placeholder label.
+const BG = {
+  couch:      {css:"linear-gradient(160deg,#2b2145,#6a3d6e 60%,#c97b8e)", img: "assets/images/bedroom.jpg", label:"couch.jpg"},
+  restaurant: {
+  css: "radial-gradient(circle at 70% 30%,#ffb36b55,transparent 40%),linear-gradient(160deg,#3b1f2b,#7a3b3b)",
+img: "assets/images/restaurant.jpeg",
+  label: "restaurant.jpg"
+},
+  arcade:     {css:"linear-gradient(160deg,#0f1b4d,#6a1fa8 55%,#ff3d9a) ", img: "assets/images/arcade.jpg", label:"arcade.jpg"},
+  park:       {css:"linear-gradient(180deg,#27406b,#4f7d6b 70%,#2d5a3f)",img: "assets/images/park.jpeg", label:"park.jpg"},
+  rooftop:    {css:"radial-gradient(circle at 50% 100%,#ff9a6b66,transparent 50%),linear-gradient(180deg,#10163a,#3b2c63)", img: "assets/images/rooftop.jpg", label:"rooftop.jpg"},
+  beach:      {css:"radial-gradient(circle at 80% 15%,#fff3c4,#fff3c400 12%),linear-gradient(180deg,#0b1030,#1d3560 60%,#c9b38a)", img: "assets/images/beach3.jpg", label:"beach_night.jpg"},
+  house:      {css:"radial-gradient(circle at 50% 40%,#ffd7a066,transparent 45%),linear-gradient(180deg,#2a1d3d,#5a3a4a)", img: "assets/images/house2.jpg", label:"her_house.jpg"},
+  bus:        {css:"linear-gradient(180deg,#1a2238,#394a6b)", img: "assets/images/bus.jpg", label:"bus_stop.jpg"},
+  bedroom:    {css:"linear-gradient(180deg,#0c0c18,#1c1c33)", img: "assets/images/bedroom.jpg", label:"your_bedroom.jpg"},
+  street:     {css:"linear-gradient(180deg,#0a0a12,#2a1a24)", img: "assets/images/street.jpg", label:"empty_street.jpg"}
+};
+
+const SPRITE_DIR = "assets/sprites/";
+const SPRITES = {
+  wannadie:"wannadie.png", table:"table.png", surprised:"surprised.png", shy:"shy.png",
+  sad:"sad.png", pissedOf:"pissedOf.png", love:"love.png", happy:"happy.png",
+  full_body:"full_body.png", full_body2:"full_body2.png", depressed:"depressed.png",
+  bored:"bored.png", angry:"angry.png", tux:"tux.png"
+};
+const CG_DIR = "assets/sprites/";
+const CGS = { profile:"profile.png", ghost:"ghost.png" };
+
+
+// Speaker: "" = narrator, "you", or "girl". Add or remove lines freely.
+const T = {
+  CPU:"CPU", ULA:"ULA", UC:"UC", REG:"Registradores",
+  RAM:"RAM", ROM:"ROM", EEPROM:"EEPROM", FLASH:"Flash",
+  CACHE:"Cache", MASSA:"Memória de massa", DMA:"DMA",
+  ADDR:"Barramento de endereço", DATA:"Barramento de dados",
+  MICRO:"Microcontrolador", DUAL:"Dual core", QUAD:"Quad core"
+};
+
+const INTRO = {
+  bg:"couch",
+  lines:[
+    ["", "Domingo à noite. Você está no sofá, deslizando no Tinder com meia pizza fria na mesa."],
+    ["you", "Ninguém interessante... ninguém... peraí."],
+    ["", `${CFG.girl}, 27 anos. Engenheira sênior de infraestrutura numa big tech. A pessoa mais linda que você já viu.`, "cg:profile"],
+    ["you", "Ela joga em outra liga. Eu tenho só seis meses de curso de programação... Vai, curti."],
+    ["", "Deu match. Três dias depois, você entra num restaurante à luz de velas.", "cg:none"]
+  ]
+};
+
+/* Em "a", a PRIMEIRA alternativa é a correta (o jogo embaralha). "q" é a pista. */
+const PLACES = {
+  dinner: { sit:true, idle:"table", name:"Trattoria Luna", bg:"restaurant",
+    intro:[["", `Trattoria Luna. ${CFG.girl} já está à mesa e é ainda mais linda ao vivo.`],
+           ["girl", "Então você estuda programação? Eu dou a pista e você me diz o termo. Fácil, né?", "happy"]],
+    qs:[
+      {q:"Peça que executa o programa e reúne ULA, UC e registradores.", a:[T.CPU,T.RAM,T.CACHE,T.DMA], tip:"É a peça principal. ULA e UC são partes dela."},
+      {q:"Parte da CPU que faz as contas e as operações lógicas.", a:[T.ULA,T.UC,T.REG,T.CACHE], tip:"Pense em soma, subtração, AND e OR."},
+      {q:"Lê cada instrução, descobre o que ela pede e envia ordens às outras partes.", a:[T.UC,T.ULA,T.REG,T.CPU], tip:"Ela dá as ordens. Quem calcula é outra peça."},
+      {q:"Pequenas memórias dentro da CPU que guardam o dado usado agora.", a:[T.REG,T.CACHE,T.RAM,T.ULA], tip:"São as memórias mais rápidas de todas."}
+    ]},
+  arcade: { idle:"full_body", name:"Fliperama Pixel Palace", bg:"arcade", label:"Ir ao fliperama",
+    intro:[["girl", "Não venho aqui desde a faculdade. Quem errar paga as fichas!", "happy"]],
+    qs:[
+      {q:"Perde o conteúdo sem energia e guarda as variáveis enquanto o programa roda.", a:[T.RAM,T.ROM,T.FLASH,T.EEPROM], tip:"É volátil e guarda as variáveis."},
+      {q:"Memória não volátil de fábrica cujo conteúdo, em princípio, não é alterado pelo usuário.", a:[T.ROM,T.RAM,T.FLASH,T.EEPROM], tip:"As outras duas não volátil você consegue regravar."},
+      {q:"Memória de 1 KB do Arduino Uno que mantém dados sem energia.", a:[T.EEPROM,T.FLASH,T.RAM,T.ROM], tip:"Não é a de 32 KB que guarda o programa."},
+      {q:"No Arduino Uno guarda o programa, em 32 KB que sobrevivem ao desligamento.", a:[T.FLASH,T.EEPROM,T.RAM,T.ROM], tip:"No Uno são 32 KB e o programa fica nela."}
+    ]},
+  park: { idle:"full_body2", name:"Parque do Lago", bg:"park", label:"Passear no parque",
+    intro:[["girl", "Eu penso melhor perto da água. Vamos caminhar?"]],
+    qs:[
+      {q:"Cópia do que a CPU usou há pouco, guardada dentro do processador.", a:[T.CACHE,T.REG,T.RAM,T.MASSA], tip:"Fica dentro do processador, entre a CPU e a RAM."},
+      {q:"Guarda arquivos e programas instalados de forma permanente, como SSD ou HD.", a:[T.MASSA,T.RAM,T.CACHE,T.REG], tip:"SSD e HD são exemplos dela."},
+      {q:"Deixa disco, placa de rede e vídeo moverem dados sem sobrecarregar a CPU.", a:[T.DMA,T.UC,T.ADDR,T.DATA], tip:"A transferência acontece sem a CPU no meio."},
+      {q:"Chip barato e econômico com CPU, memória e pinos de entrada e saída.", a:[T.MICRO,T.CPU,T.DUAL,T.DMA], tip:"Lembra da máquina de lavar roupa?"}
+    ]},
+  rooftop: { idle:"full_body", name:"Bar Skyline", bg:"rooftop", label:"Drinks no terraço",
+    intro:[["girl", "A melhor vista da cidade. Vamos ver se você me impressiona aqui."]],
+    qs:[
+      {q:"Só sai da CPU e escolhe a posição de memória a ser acessada.", a:[T.ADDR,T.DATA,T.UC,T.DMA], tip:"Ele responde à pergunta ONDE?"},
+      {q:"Via de mão dupla que leva o valor lido ou escrito, inclusive instruções.", a:[T.DATA,T.ADDR,T.UC,T.DMA], tip:"Ele responde à pergunta O QUÊ? e vai nos dois sentidos."},
+      {q:"Chip com par de CPUs completas dividindo o trabalho em paralelo.", a:[T.DUAL,T.QUAD,T.MICRO,T.CPU], tip:"É a versão com menos CPUs entre as duas parecidas."},
+      {q:"Chip com o dobro das CPUs de um par, dividindo tarefas em paralelo.", a:[T.QUAD,T.DUAL,T.MICRO,T.CPU], tip:"É a versão com mais CPUs entre as duas parecidas."}
+    ]}
+};
+
+
+const PROF_IMG = "assets/sprites/professor.jpg";  
+
+const RIGHT = ["Exatamente!", "Boa, você sabe mesmo isso.", "Ok, estou impressionada.", "Correto. Continue assim."];
+const WRONG = ["Hmm, não é bem isso.", "Ai. Não é essa.", "Sério? Pense melhor da próxima vez.", "Quase, mas não."];
+
+const ENDINGS = [
+  {min:100, bg:"house", mood:"tux", sfx:"win", title:"A casa dela",
+   text:`Na porta, ${CFG.girl} sorri. ‘Entra. Quero ouvir tudo sobre o seu curso.’ A porta se fecha atrás de você. A melhor noite da sua vida.`},
+  {min:80, bg:"beach", mood:"love", sfx:"win", title:"Luar na praia",
+   text:`Vocês caminham pela praia à noite. As ondas estão calmas. Ela para, olha para você e te beija. Mandou bem, futuro engenheiro.`},
+  {min:70, bg:"bus", mood:"happy", title:"Segundo encontro",
+   text:`No ponto de ônibus ela diz: ‘Você ainda tem muito a aprender, mas me diverti. Semana que vem, no mesmo horário?’`},
+  {min:21, bg:"bedroom", mood:null, cg:"ghost", sfx:"lose", title:"Visualizado",
+   text:`Na manhã seguinte você manda mensagem. Visualizada. Sem resposta, nem naquele dia nem naquela semana. Hora de estudar mais.`},
+  {min:0, bg:"street", mood:"angry", sfx:"lose", title:"Abandonado",
+   text:`‘Não acredito que perdi minha noite com isso.’ ${CFG.girl} vai embora e te deixa sozinho na rua, sem carona para casa.`}
+];
+const LIAR_END = {bg:"street", mood:"pissedOf", sfx:"lose", title:"Ela não gosta de mentirosos",
+  text:`‘Eu te disse que não gosto de mentirosos.’ ${CFG.girl} se levanta e vai embora. A conta fica com você.`};
+/* ============================ END OF EDIT BLOCK ============================ */
+
+const $ = id => document.getElementById(id);
+let muted = false, curMusic = null;
+const bgm = new Audio(); bgm.loop = true;
+
+
+function sfx(name){
+  if(muted || !SFX[name]) return;
+  const a = new Audio(SND_DIR + SFX[name]); a.volume = VOL.sfx; a.play().catch(()=>{});
+}
+
+
+function music(name){
+  if(name === curMusic) return; curMusic = name;
+  if(!name || !MUSIC[name]){ bgm.pause(); return; }
+  bgm.src = SND_DIR + MUSIC[name]; bgm.volume = VOL.music;
+  if(!muted) bgm.play().catch(()=>{});
+}
+$("mute").onclick = () => {
+  muted = !muted;
+  $("mute").textContent = muted ? "Sound: off" : "Sound: on";
+  if(muted) bgm.pause(); else if(curMusic) bgm.play().catch(()=>{});
+};
+
+function titleMusic(){
+  if($("title").style.display !== "none") music("title");   // só se ainda estiver na tela de título
+}
+["pointerdown","keydown"].forEach(ev => addEventListener(ev, titleMusic, {once:true}));
+
+
+const spriteEl = $("sprite"); let curSprite = null;
+
+spriteEl.onerror = () => spriteEl.classList.remove("show");
+Object.values(SPRITES).forEach(f => { new Image().src = SPRITE_DIR + f; });  // preload
+
+function mood(name){
+  if(name === curSprite) return; curSprite = name;
+  spriteEl.classList.remove("show");
+  if(!name || !SPRITES[name]) return;
+  setTimeout(() => {
+    if(curSprite !== name) return;
+    spriteEl.src = SPRITE_DIR + SPRITES[name]; spriteEl.classList.add("show");
+  }, 200);
+  if(!name || !SPRITES[name] || curCg) return;
+}
+
+const cgEl = $("cg"); let curCg = null;
+cgEl.onerror = () => cgEl.classList.remove("show");
+Object.values(CGS).forEach(f => { new Image().src = CG_DIR + f; });   // preload
+function cg(name){
+  curCg = (name && CGS[name]) ? name : null;
+  if(!curCg){ cgEl.classList.remove("show"); return; }
+  mood(null);                                   // esconde a sprite
+  cgEl.src = CG_DIR + CGS[curCg];
+  cgEl.classList.add("show");
+}
+// usado nas falas: "cg:profile" mostra, "cg:none" esconde, qualquer outra coisa é expressão
+function stageCue(m){ if(!m) return; m.startsWith("cg:") ? cg(m.slice(3)) : mood(m); }
+
+
+function idleMood(){
+  const p = S.place;
+  if(S.love <= 30) return p.sit ? "wannadie" : "bored";   // she is losing interest
+  return p.idle;
+} 
+
+
+let S;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(p => p[1]);
+
+function setBg(key){
+  if(MUSIC[key]) music(key);
+  const b = BG[key];
+  const st = $("stage");
+  st.style.backgroundImage = b.img ? `url(${b.img})` : b.css;
+  $("ph").textContent = b.img ? "" : "placeholder background: " + b.label;
+}
+function who(w){ return w === "girl" ? CFG.girl : w === "you" ? CFG.you : w === "prof" ? CFG.prof : ""; }
+
+let skip = false;
+function say(w, text, wait = true){
+  $("opts").innerHTML = ""; $("phone").style.display = "none";
+  $("who").textContent = who(w);
+  const t = $("txt"); t.className = w === "" ? "narr" : "";
+  $("next").style.display = wait ? "block" : "none";
+  t.textContent = "";
+  return new Promise(async res => {
+    skip = false; let i = 0;
+    while(i < text.length && !skip){ t.textContent = text.slice(0, ++i); await sleep(16); }
+    t.textContent = text;
+    if(!wait) return res();
+    const go = () => { $("dlg").removeEventListener("click", go); document.removeEventListener("keydown", key); res(); };
+    const key = e => { if(e.key === " " || e.key === "Enter"){ e.preventDefault(); go(); } };
+    $("dlg").addEventListener("click", go); document.addEventListener("keydown", key);
+  });
+}
+$("dlg").addEventListener("click", () => { skip = true; });
+
+function updateHud(delta){
+  $("fill").style.width = S.love + "%";
+  $("lovepct").textContent = S.love + "%";
+  $("prog").textContent = `Perguntas ${S.asked}/${S.total}`;
+  const p = $("prof");
+  const ready = S.combo >= CFG.comboNeeded && S.uses < CFG.profMaxUses;
+  p.className = ready ? "ready" : "";
+  p.textContent = S.uses >= CFG.profMaxUses ? `Call ${CFG.prof}: no calls left`
+    : ready ? `Call ${CFG.prof}: ready` : `Call ${CFG.prof}: combo ${Math.min(S.combo, CFG.comboNeeded)}/${CFG.comboNeeded}`;
+  if(delta){
+    const d = $("delta"); d.textContent = (delta > 0 ? "+" : "") + delta;
+    d.style.color = delta > 0 ? "var(--ok)" : "var(--bad)";
+    d.className = ""; void d.offsetWidth; d.className = "go";
+  }
+}
+
+
+
+function ask(q){
+  return new Promise(async resolve => {
+    mood(idleMood());
+    await say("girl", q.q, false);
+    const correct = q.a[0];
+    const opts = shuffle(q.a.map(t => ({t, ok: t === correct})));
+    const box = $("opts"); box.innerHTML = "";
+    let helped = false;
+    const btns = opts.map(o => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "opt"; b.textContent = o.t;
+      b.onclick = () => { sfx("click"); finish(o, b); };
+      box.appendChild(b); return {o, b};
+    });
+    $("prof").onclick = () => {
+      if(S.combo < CFG.comboNeeded || S.uses >= CFG.profMaxUses || helped) return;
+      sfx("call");
+      helped = true; S.uses++; S.combo = 0; updateHud();
+     const ph = $("phone"); ph.innerHTML = "";
+if(PROF_IMG || q.profImg){
+  const im = new Image(); im.src = q.profImg || PROF_IMG; im.alt = CFG.prof;
+  im.onerror = () => im.remove();            // no image file? the text still shows
+  ph.appendChild(im);
+}
+const col = document.createElement("div");
+const nm = document.createElement("b"); nm.textContent = CFG.prof;
+const tx = document.createElement("span"); tx.textContent = q.tip || "Pense no básico.";
+col.append(nm, tx); ph.appendChild(col);
+ph.style.display = "flex";
+      let off = 0;
+      btns.filter(x => !x.o.ok).forEach(x => { if(off < 2){ x.b.disabled = true; off++; } });
+    };
+
+
+
+
+
+
+    function finish(o, b){
+      $("prof").onclick = null;
+      btns.forEach(x => { x.b.disabled = true; if(x.o.ok) x.b.classList.add("good"); });
+      if(!o.ok) b.classList.add("bad");
+      S.asked++;
+      if(o.ok){ S.right++; S.combo++; S.love = Math.min(100, S.love + CFG.gain); updateHud(CFG.gain); }
+      else { S.combo = 0; S.love = Math.max(0, S.love - CFG.loss); updateHud(-CFG.loss); }
+      sfx(o.ok ? "right" : "wrong");
+      if(o.ok && S.combo === CFG.comboNeeded) setTimeout(() => sfx("combo"), 250);
+
+      mood(o.ok
+  ? (q.okMood || (S.combo >= CFG.comboNeeded ? "love" : "happy"))
+  : (q.noMood || (S.love <= 15 ? "depressed" : S.love <= 35 ? "sad" : "surprised")));
+
+      setTimeout(async () => {
+        await say("girl", o.ok ? (q.ok || pick(RIGHT)) : (q.no || pick(WRONG)));
+        resolve();
+      }, 700);
+    }
+  });
+}
+
+async function scene(key){
+  const p = PLACES[key]; S.place = p;
+  setBg(p.bg); mood(idleMood());
+  await say("", "— " + p.name + " —");
+for(const [w, t, m] of p.intro){ stageCue(m); await say(w, t); }
+  for(const q of p.qs){
+    await ask(q);
+    if(S.love <= 0) return false;
+  }
+  return true;
+}
+
+async function ending(e, pct){
+  setBg(e.bg);
+  sfx(e.sfx);
+  mood(e.mood || null); 
+  cg(e.cg || null);
+  $("opts").innerHTML = ""; $("phone").style.display = "none";
+  $("who").textContent = e.title;
+  $("txt").className = ""; $("next").style.display = "none";
+  const t = pct == null ? "" : `\n\n Acertos: ${S.right}/${S.total} (${pct}%)  ·  Amor: ${S.love}%`;
+  await say("", e.text + t, false);
+  $("who").textContent = e.title;
+  const b = $("end"); b.style.display = "inline-block"; b.onclick = () => { b.style.display = "none"; play(); };
+}
+
+async function play(){
+  const nPlaces = Math.min(CFG.placesToVisit, Object.keys(PLACES).length - 1);
+  const total = PLACES.dinner.qs.length;
+  let rest = Object.keys(PLACES).filter(k => k !== "dinner");
+  let extra = 0;
+  const pool = [...rest];
+  for(let i = 0; i < nPlaces; i++){ extra += Math.max(...pool.map(k => PLACES[k].qs.length)); }
+  // total = dinner + the longest places (all places default to 3 questions)
+  S = {love:CFG.startLove, right:0, asked:0, combo:0, uses:0, total: total + extra};
+  $("title").style.display = "none"; $("hud").hidden = false; $("box").hidden = false;
+  $("girlname").textContent = CFG.girl; $("end").style.display = "none"; updateHud();
+  setBg(INTRO.bg);
+  mood(null);
+for(const [w, t, m] of INTRO.lines){ stageCue(m); await say(w, t); }
+  if(!(await scene("dinner"))) return ending(LIAR_END, null);
+  for(let i = 0; i < nPlaces; i++){
+    await say("girl", "A noite ainda é uma criança. Para onde vamos agora?", false);
+    const box = $("opts");
+    const chosen = await new Promise(res => {
+      rest.forEach(k => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "opt";
+        b.textContent = PLACES[k].label || PLACES[k].name; b.onclick = () => res(k); box.appendChild(b);
+      });
+    });
+    rest = rest.filter(k => k !== chosen);
+    if(!(await scene(chosen))) return ending(LIAR_END, null);
+  }
+  const pct = Math.round(S.right / S.asked * 100);
+  await say("", "A noite está acabando...");
+  ending(ENDINGS.find(e => pct >= e.min), pct);
+}
+$("start").onclick = play;
+</script>
+</body>
+</html>
