@@ -27,10 +27,15 @@
 <div id="title">
   <h1>Night Script</h1>
   <p>Seis meses de curso de programação e um match mudaram a sua noite. Acerte, impressione e não minta.</p>
-  <input type="text" placeholder="qual o seu nome?" id="ipt_nome">
-  <button class="btn" id="start">Iniciar o encontro</button>
+  <input type="text" placeholder="qual o seu nome?" id="ipt_nome"> <br>
+ <button class="btn" id="start" disabled>Iniciar o encontro</button>
 </div>
 
+<div id="loading">
+  <h2>Carregando...</h2>
+  <div id="lbar"><div id="lfill"></div></div>
+  <span id="lpct">0%</span>
+</div>
 <script>
 
 
@@ -410,7 +415,38 @@ for(const [w, t, m] of INTRO.lines){ stageCue(m); await say(w, t); }
   await say("", "A noite está acabando...");
   ending(ENDINGS.find(e => pct >= e.min), pct);
 }
+function preload(){
+  const urls = [
+    ...Object.values(BG).filter(b => b.img).map(b => b.img),
+    ...Object.values(SPRITES).map(f => SPRITE_DIR + f),
+    ...Object.values(CGS).map(f => CG_DIR + f),
+    PROF_IMG
+  ].filter(Boolean);
+  let done = 0;
+  const total = urls.length;
+  const tick = () => {
+    done++;
+    const p = total ? Math.round(done / total * 100) : 100;
+    $("lfill").style.width = p + "%";
+    $("lpct").textContent = p + "%";
+  };
+  const loads = urls.map(u => new Promise(res => {
+    const im = new Image();
+    im.onload = im.onerror = () => { tick(); res(); };   // erro conta como carregado
+    im.src = u;
+  }));
+  const timeout = new Promise(res => setTimeout(res, 12000));
+  return Promise.race([Promise.all(loads), timeout]);
+}
+
+preload().then(() => {
+  $("start").disabled = false;
+  $("loading").classList.add("out");
+  setTimeout(() => $("loading").style.display = "none", 500);
+});
+
 $("start").onclick = play;
+
 </script>
 </body>
 </html>
