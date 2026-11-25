@@ -47,7 +47,7 @@ const SFX = {                      // efeitos curtos
 const MUSIC = {                    // a chave é o nome do fundo (BG)
   couch:"couch.mp3", restaurant:"restaurant.mp3", arcade:"arcade.mp3",
   park:"park.mp3", rooftop:"rooftop.mp3", beach:"beach.mp3",
-  house:"house.mp3", bus:"bus.mp3", street:"street.mp3" , title:"title.mp3"
+  house:"house.mp3", bus:"Bus.mp3", street:"street.mp3" , title:"title.mp3"
 };
 const VOL = {sfx:.7, music:.4};
 
@@ -116,7 +116,7 @@ const INTRO = {
   lines:[
     ["", "Domingo à noite. Você está no sofá, deslizando no Tinder com meia pizza fria na mesa."],
     ["you", "Ninguém interessante... ninguém... peraí."],
-    ["", `${CFG.girl}, 27 anos. Engenheira sênior de infraestrutura numa big tech. A pessoa mais linda que você já viu.`, "cg:profile"],
+    ["", `${CFG.girl}, 22 anos. Engenheira sênior de infraestrutura numa big tech. A pessoa mais linda que você já viu.`, "cg:profile"],
     ["you", "Ela joga em outra liga. Eu tenho só seis meses de curso de programação... Vai, curti."],
     ["", "Deu match. Três dias depois, você entra num restaurante à luz de velas.", "cg:none"]
   ]
@@ -174,7 +174,7 @@ const ENDINGS = [
    text:`No ponto de ônibus ela diz: ‘Você ainda tem muito a aprender, mas me diverti. Semana que vem, no mesmo horário?’`},
   {min:21, bg:"bedroom", mood:null, cg:"ghost", sfx:"lose", title:"Visualizado",
    text:`Na manhã seguinte você manda mensagem. Visualizada. Sem resposta, nem naquele dia nem naquela semana. Hora de estudar mais.`},
-  {min:0, bg:"street", mood:"angry", sfx:"lose", title:"Abandonado",
+  {min:10, bg:"street", mood:"angry", sfx:"lose", title:"Abandonado",
    text:`‘Não acredito que perdi minha noite com isso.’ ${CFG.girl} vai embora e te deixa sozinho na rua, sem carona para casa.`}
 ];
 const LIAR_END = {bg:"street", mood:"pissedOf", sfx:"lose", title:"Ela não gosta de mentirosos",
